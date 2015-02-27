@@ -18,7 +18,7 @@ cd libfreenect2
 # It would probably be better if placed in /usr/include/turbojpeg.h
 cp extras/turbojpeg.h depends/nv_headers
 
-cd libfreenect2/depends
+cd depends
 sh install_ubuntu.sh
 
 #fix up libturbojpeg.so linker doesn't get upset
