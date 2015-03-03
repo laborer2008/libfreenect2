@@ -3,7 +3,7 @@
 
 # Install Prerequisites
 #opencv-dev -> opencv4tegra-dev -> already installed from Jetpack
-sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-dev cmake mesa-common-dev freeglut3-dev libxrandr-dev doxygen libxi-dev 
+sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-dev cmake mesa-common-dev freeglut3-dev libxrandr-dev doxygen libxi-dev libjpeg-turbo8-dev
 
 # Get libfreenect2
 git clone https://github.com/jetsonhacks/libfreenect2.git
@@ -13,17 +13,12 @@ tar -xvf gstjpeg_src.tbz2 gstjpeg_src/nv_headers
 mv gstjpeg_src/nv_headers/ libfreenect2/depends/
 # Cleanup the empty folder
 rmdir gstjpeg_src/
-cd libfreenect2
-# Put turbojpeg.h in the include path; this should be from libturbo-jpeg8-dev
-# It would probably be better if placed in /usr/include/turbojpeg.h
-cp extras/turbojpeg.h depends/nv_headers
-
-cd depends
+# build libusb and glfw
+cd libfreenect2/depends
 sh install_ubuntu.sh
-
 #fix up libturbojpeg.so linker doesn't get upset
 sudo ln -s /usr/lib/arm-linux-gnueabihf/libturbojpeg.so.0.0.0 /usr/lib/arm-linux-gnueabihf/libturbojpeg.so
-
+# Build Protonect example
 cd ../examples/protonect/
 cmake CMakeLists.txt
 make && sudo make install
