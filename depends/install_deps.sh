@@ -11,12 +11,8 @@ rm -rf $LIBUSB_SOURCE_DIR $LIBUSB_INSTALL_DIR
 git clone https://github.com/libusb/libusb.git $LIBUSB_SOURCE_DIR
 
 cd $LIBUSB_SOURCE_DIR
-git checkout 51b10191033ca3a3819dcf46e1da2465b99497c2
-# Patch the MAX_ISO_BUFFER_LENGTH back to 49152
-# Causes issues on the Renasas USB controller on the Jetson for some reason 
-cd libusb/os
-patch < ../../../../extras/usbfs.patch
-cd $LIBUSB_SOURCE_DIR
+git checkout v1.0.19
+git apply $DEPENDS_DIR/linux_usbfs_increase_max_iso_buffer_length.patch
 ./bootstrap.sh
 ./configure --prefix=$LIBUSB_INSTALL_DIR
 make && make install
