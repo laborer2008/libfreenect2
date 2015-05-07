@@ -18,10 +18,14 @@ cd libfreenect2/depends
 sh install_ubuntu.sh
 #fix up libturbojpeg.so linker doesn't get upset
 sudo ln -s /usr/lib/arm-linux-gnueabihf/libturbojpeg.so.0.0.0 /usr/lib/arm-linux-gnueabihf/libturbojpeg.so
+
 # Build Protonect example
 cd ../examples/protonect/
-cmake CMakeLists.txt
+mkdir build
+cd build
+cmake ..
 make && sudo make install
+
 # Install the udev rule so that you always have read/write permission to the Kinect V2
 cd ../..
 sudo cp extras/90-kinect2.rules /etc/udev/rules.d/90-kinect2.rules
