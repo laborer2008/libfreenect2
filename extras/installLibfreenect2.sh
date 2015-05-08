@@ -3,10 +3,11 @@
 
 # Install Prerequisites
 #opencv-dev -> opencv4tegra-dev -> already installed from Jetpack
-sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-dev cmake mesa-common-dev freeglut3-dev libxrandr-dev doxygen libxi-dev libjpeg-turbo8-dev
+sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-dev cmake mesa-common-dev \
+    freeglut3-dev libxrandr-dev doxygen libxi-dev libjpeg-turbo8-dev checkinstall
 
 # Remove leftovers from previous builds
-rm -rf libfreenect2
+sudo rm -rf libfreenect2
 
 # Get libfreenect2
 git clone https://github.com/jetsonhacks/libfreenect2.git
@@ -31,7 +32,7 @@ cd ../examples/protonect/
 mkdir build
 cd build
 cmake ..
-make && sudo make install
+make && sudo checkinstall -y --pkgname=libfreenect2 --exclude /home make install
 
 # Install the udev rule so that you always have read/write permission to the Kinect V2
 cd ../..
