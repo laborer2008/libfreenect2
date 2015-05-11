@@ -29,12 +29,13 @@ sudo ln -s /usr/lib/arm-linux-gnueabihf/libturbojpeg.so.0.0.0 /usr/lib/arm-linux
 
 # Build Protonect example
 cd ../examples/protonect/
+rm -rf build
 mkdir build
 cd build
 cmake ..
 make && sudo checkinstall -y --pkgname=libfreenect2 --exclude /home make install
 
 # Install the udev rule so that you always have read/write permission to the Kinect V2
-cd ../..
+cd ../../..
 sudo cp extras/90-kinect2.rules /etc/udev/rules.d/90-kinect2.rules
 /bin/echo -e "\e[1;32mFinished.\e[0m"
