@@ -13,7 +13,7 @@ sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-de
     freeglut3-dev libxrandr-dev doxygen libxi-dev libjpeg-turbo8-dev checkinstall
 
 # Copy nv_headers into libfreenect2/depends/gstjpeg_src
-wget http://developer.download.nvidia.com/embedded/L4T/r21_Release_v3.0/sources/gstjpeg_src.tbz2
+wget http://developer.download.nvidia.com/mobile/tegra/l4t/r21.2.0/sources/gstjpeg_src.tbz2
 tar -xvf gstjpeg_src.tbz2 gstjpeg_src/nv_headers
 
 rm -rf $LIBFREENECT2_DIR/depends/gstjpeg_src
