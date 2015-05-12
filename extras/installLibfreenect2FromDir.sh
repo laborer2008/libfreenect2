@@ -15,9 +15,10 @@ sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-de
 # Copy nv_headers into libfreenect2/depends/gstjpeg_src
 wget http://developer.download.nvidia.com/mobile/tegra/l4t/r21.2.0/sources/gstjpeg_src.tbz2
 tar -xvf gstjpeg_src.tbz2 gstjpeg_src/nv_headers
+mv gstjpeg_src/nv_headers $LIBFREENECT2_DIR/depends/
 
-rm -rf $LIBFREENECT2_DIR/depends/gstjpeg_src
-mv gstjpeg_src $LIBFREENECT2_DIR/depends/
+# Cleanup the empty folder
+rmdir gstjpeg_src/
 
 # build libusb and glfw
 cd $LIBFREENECT2_DIR/depends
