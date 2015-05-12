@@ -1,27 +1,26 @@
 #!/bin/sh
 #from https://github.com/xlz/libfreenect2/wiki/Jetson-TK1-HOWTO
 
+if [ -z "$1" ]; then
+    echo "Libfreenect2 project directory must be provided"
+    exit 1
+fi
+LIBFREENECT2_DIR=$1
+
 # Install Prerequisites
-#opencv-dev -> opencv4tegra-dev -> already installed from Jetpack
+#opencv-dev -> opencv4tegra-dev -> already installed from Jetpack 
 sudo apt-get install -y build-essential libturbojpeg libtool autoconf libudev-dev cmake mesa-common-dev \
     freeglut3-dev libxrandr-dev doxygen libxi-dev libjpeg-turbo8-dev checkinstall
-
-# Remove leftovers from previous builds
-sudo rm -rf libfreenect2
-
-# Get libfreenect2
-git clone https://github.com/jetsonhacks/libfreenect2.git
 
 # Copy nv_headers and turbojepg.h into libfreenect2/depends
 wget http://developer.download.nvidia.com/mobile/tegra/l4t/r21.2.0/sources/gstjpeg_src.tbz2
 tar -xvf gstjpeg_src.tbz2 gstjpeg_src/nv_headers
-mv gstjpeg_src/nv_headers/ libfreenect2/depends/
 
-# Cleanup the empty folder
-rmdir gstjpeg_src/
+rm -rf $LIBFREENECT2_DIR/depends/gstjpeg_src
+mv gstjpeg_src $LIBFREENECT2_DIR/depends/
 
 # build libusb and glfw
-cd libfreenect2/depends
+cd $LIBFREENECT2_DIR/depends
 sh install_ubuntu.sh
 
 #fix up libturbojpeg.so linker doesn't get upset
