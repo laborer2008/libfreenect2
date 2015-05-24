@@ -152,6 +152,48 @@ freely, subject to the following restrictions:
 /// the std::mutex class.
 namespace tthread {
 
+// Related to <ratio> - minimal to be able to support chrono.
+typedef long long __intmax_t;
+
+/// Minimal implementation of the @c ratio class. This class provides enough
+/// functionality to implement some basic @c chrono classes.
+template <__intmax_t N, __intmax_t D = 1> class ratio {
+  public:
+    static double _as_double() { return double(N) / double(D); }
+};
+
+/// Minimal implementation of the @c chrono namespace.
+/// The @c chrono namespace provides types for specifying time intervals.
+namespace chrono {
+  /// Duration template class. This class provides enough functionality to
+  /// implement @c this_thread::sleep_for().
+  template <class _Rep, class _Period = ratio<1> > class duration {
+    private:
+      _Rep rep_;
+    public:
+      typedef _Rep rep;
+      typedef _Period period;
+
+      /// Construct a duration object with the given duration.
+      template <class _Rep2>
+        explicit duration(const _Rep2& r) : rep_(r) {};
+
+      /// Return the value of the duration object.
+      rep count() const
+      {
+        return rep_;
+      }
+  };
+
+  // Standard duration types.
+  typedef duration<__intmax_t, ratio<1, 1000000000> > nanoseconds; ///< Duration with the unit nanoseconds.
+  typedef duration<__intmax_t, ratio<1, 1000000> > microseconds;   ///< Duration with the unit microseconds.
+  typedef duration<__intmax_t, ratio<1, 1000> > milliseconds;      ///< Duration with the unit milliseconds.
+  typedef duration<__intmax_t> seconds;                            ///< Duration with the unit seconds.
+  typedef duration<__intmax_t, ratio<60> > minutes;                ///< Duration with the unit minutes.
+  typedef duration<__intmax_t, ratio<3600> > hours;                ///< Duration with the unit hours.
+}
+
 /// Mutex class.
 /// This is a mutual exclusion object for synchronizing access to shared
 /// memory areas for several threads. The mutex is non-recursive (i.e. a
@@ -437,6 +479,20 @@ class LIBFREENECT2_API condition_variable {
 #endif
     }
 
+    /// Wait for the condition.
+    /// The function will block the calling thread until the condition variable
+    /// is woken by @c notify_one(), @c notify_all() or a spurious wake up or timeout is expired.
+    /// @param[in] aMutex A mutex that will be unlocked when the wait operation
+    ///   starts, an locked again as soon as the wait operation is finished.
+    template <class _mutexT, class Rep, class Period>
+    inline void wait_for(_mutexT &aMutex, const chrono::duration<Rep, Period>& rel_time)
+    {
+#if defined(_TTHREAD_WIN32_)
+#   error Unimplemented yet
+#else
+#endif
+    }
+
     /// Notify one thread that is waiting for the condition.
     /// If at least one thread is blocked waiting for this condition variable,
     /// one will be woken up.
@@ -628,48 +684,6 @@ class LIBFREENECT2_API thread::id {
     unsigned long int mId;
 };
 
-
-// Related to <ratio> - minimal to be able to support chrono.
-typedef long long __intmax_t;
-
-/// Minimal implementation of the @c ratio class. This class provides enough
-/// functionality to implement some basic @c chrono classes.
-template <__intmax_t N, __intmax_t D = 1> class ratio {
-  public:
-    static double _as_double() { return double(N) / double(D); }
-};
-
-/// Minimal implementation of the @c chrono namespace.
-/// The @c chrono namespace provides types for specifying time intervals.
-namespace chrono {
-  /// Duration template class. This class provides enough functionality to
-  /// implement @c this_thread::sleep_for().
-  template <class _Rep, class _Period = ratio<1> > class duration {
-    private:
-      _Rep rep_;
-    public:
-      typedef _Rep rep;
-      typedef _Period period;
-
-      /// Construct a duration object with the given duration.
-      template <class _Rep2>
-        explicit duration(const _Rep2& r) : rep_(r) {};
-
-      /// Return the value of the duration object.
-      rep count() const
-      {
-        return rep_;
-      }
-  };
-
-  // Standard duration types.
-  typedef duration<__intmax_t, ratio<1, 1000000000> > nanoseconds; ///< Duration with the unit nanoseconds.
-  typedef duration<__intmax_t, ratio<1, 1000000> > microseconds;   ///< Duration with the unit microseconds.
-  typedef duration<__intmax_t, ratio<1, 1000> > milliseconds;      ///< Duration with the unit milliseconds.
-  typedef duration<__intmax_t> seconds;                            ///< Duration with the unit seconds.
-  typedef duration<__intmax_t, ratio<60> > minutes;                ///< Duration with the unit minutes.
-  typedef duration<__intmax_t, ratio<3600> > hours;                ///< Duration with the unit hours.
-}
 
 /// The namespace @c this_thread provides methods for dealing with the
 /// calling thread.
