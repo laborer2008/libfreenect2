@@ -79,10 +79,12 @@ freely, subject to the following restrictions:
     #undef __UNDEF_LEAN_AND_MEAN
   #endif
 #else
+  #include <errno.h>
   #include <pthread.h>
   #include <signal.h>
   #include <sched.h>
   #include <unistd.h>
+  #include <sys/time.h>
 #endif
 
 // Generic includes
@@ -408,6 +410,15 @@ class LIBFREENECT2_API lock_guard {
     mutex_type * mMutex;
 };
 
+
+/// The scoped enumeration cv_status describes whether a timed wait returned because of timeout or not.
+/// cv_status is used by the wait_for method of std::condition_variable
+enum cv_status
+{
+  no_timeout,
+  timeout
+};
+
 /// Condition variable class.
 /// This is a signalling object for synchronizing the execution flow for
 /// several threads. Example usage:
@@ -459,7 +470,7 @@ class LIBFREENECT2_API condition_variable {
     /// The function will block the calling thread until the condition variable
     /// is woken by @c notify_one(), @c notify_all() or a spurious wake up.
     /// @param[in] aMutex A mutex that will be unlocked when the wait operation
-    ///   starts, an locked again as soon as the wait operation is finished.
+    ///   starts, and locked again as soon as the wait operation is finished.
     template <class _mutexT>
     inline void wait(_mutexT &aMutex)
     {
@@ -481,15 +492,33 @@ class LIBFREENECT2_API condition_variable {
 
     /// Wait for the condition.
     /// The function will block the calling thread until the condition variable
-    /// is woken by @c notify_one(), @c notify_all() or a spurious wake up or timeout is expired.
+    /// is woken by @c notify_one(), @c notify_all() or a spurious wake up or rel_time is expired.
     /// @param[in] aMutex A mutex that will be unlocked when the wait operation
-    ///   starts, an locked again as soon as the wait operation is finished.
+    ///   starts, and locked again as soon as the wait operation is finished.
     template <class _mutexT, class Rep, class Period>
-    inline void wait_for(_mutexT &aMutex, const chrono::duration<Rep, Period>& rel_time)
+    inline cv_status wait_for(_mutexT &aMutex, const chrono::duration<Rep, Period>& rel_time)
     {
 #if defined(_TTHREAD_WIN32_)
 #   error Unimplemented yet
 #else
+      struct timeval tv;
+      struct timespec ts, ts2;
+
+      gettimeofday(&tv, NULL);
+
+      TIMEVAL_TO_TIMESPEC(&tv, &ts);
+
+      ts2.tv_sec = ts.tv_sec + int(double(rel_time.count()) * (1000.0 * Period::_as_double()) + 0.5);
+      ts2.tv_nsec = ts.tv_nsec;
+
+      const int waitStatus = pthread_cond_timedwait(&mHandle, &aMutex.mHandle, &ts2);
+
+      // TODO: Need a way to pass error code about EINTR and other possible results
+
+      if (waitStatus == ETIMEDOUT)
+        return timeout;
+      else
+        return no_timeout;
 #endif
     }
 
