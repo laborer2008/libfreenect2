@@ -84,10 +84,10 @@ freely, subject to the following restrictions:
   #include <signal.h>
   #include <sched.h>
   #include <unistd.h>
-  #include <sys/time.h>
 #endif
 
 // Generic includes
+#include <sys/time.h>
 #include <ostream>
 
 /// TinyThread++ version (major number).
@@ -492,26 +492,16 @@ class LIBFREENECT2_API condition_variable {
 
     /// Wait for the condition.
     /// The function will block the calling thread until the condition variable
-    /// is woken by @c notify_one(), @c notify_all() or a spurious wake up or rel_time is expired.
+    /// is woken by @c notify_one(), @c notify_all() or a spurious wake up or a specific time is reached.
     /// @param[in] aMutex A mutex that will be unlocked when the wait operation
     ///   starts, and locked again as soon as the wait operation is finished.
-    template <class _mutexT, class Rep, class Period>
-    inline cv_status wait_for(_mutexT &aMutex, const chrono::duration<Rep, Period>& rel_time)
+    template <class _mutexT>
+    inline cv_status wait_until(_mutexT &aMutex, const timespec& timeout_time)
     {
 #if defined(_TTHREAD_WIN32_)
 #   error Unimplemented yet
 #else
-      struct timeval tv;
-      struct timespec ts, ts2;
-
-      gettimeofday(&tv, NULL);
-
-      TIMEVAL_TO_TIMESPEC(&tv, &ts);
-
-      ts2.tv_sec = ts.tv_sec + int(double(rel_time.count()) * (1000.0 * Period::_as_double()) + 0.5);
-      ts2.tv_nsec = ts.tv_nsec;
-
-      const int waitStatus = pthread_cond_timedwait(&mHandle, &aMutex.mHandle, &ts2);
+      const int waitStatus = pthread_cond_timedwait(&mHandle, &aMutex.mHandle, &timeout_time);
 
       // TODO: Need a way to pass error code about EINTR and other possible results
 

@@ -47,9 +47,8 @@ public:
 
   bool hasNewFrame() const;
 
-#ifdef  LIBFREENECT2_THREADING_STDLIB
   bool waitForNewFrame(FrameMap &frame, int milliseconds);
-#endif // LIBFREENECT2_THREADING_STDLIB
+
   // for now the caller is responsible to release the frames when he is done
   void waitForNewFrame(FrameMap &frame);
 

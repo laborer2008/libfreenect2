@@ -91,6 +91,60 @@ bool SyncMultiFrameListener::waitForNewFrame(FrameMap &frame, int milliseconds)
     return false;
   }
 }
+#else
+bool SyncMultiFrameListener::waitForNewFrame(FrameMap &frame, int milliseconds)
+{
+  libfreenect2::unique_lock l(impl_->mutex_);
+
+  struct timeval tv;
+  struct timespec ts, ts2;
+
+  gettimeofday(&tv, NULL);
+
+  TIMEVAL_TO_TIMESPEC(&tv, &ts);
+
+  ts2.tv_sec = ts.tv_sec + (milliseconds / 1000);
+  ts2.tv_nsec = ts.tv_nsec + ((milliseconds % 1000) * 1000 * 1000);
+
+  bool newFrameIsAvailable = false;
+
+  do
+  {
+    // Before sleeping check whether system time was changed backwardly to prevent freezing
+
+    struct timeval new_tv;
+
+    gettimeofday(&new_tv, NULL);
+
+    if (new_tv.tv_sec < tv.tv_sec)
+      break;
+
+    if(impl_->condition_.wait_until(impl_->mutex_, ts2) == tthread::no_timeout)
+    {
+      // Check for a spurious wake up
+      if(impl_->hasNewFrame())
+      {
+        newFrameIsAvailable = true;
+        break;
+      }
+    }
+    // else time out
+  }
+  while (!impl_->hasNewFrame());
+
+  if(newFrameIsAvailable)
+  {
+    frame = impl_->next_frame_;
+    impl_->next_frame_.clear();
+    impl_->ready_frame_types_ = 0;
+
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 #endif // LIBFREENECT2_THREADING_STDLIB
 
 void SyncMultiFrameListener::waitForNewFrame(FrameMap &frame)
